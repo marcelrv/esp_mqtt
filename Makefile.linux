@@ -9,6 +9,8 @@
 # relative to the project directory
 BUILD_BASE	= build
 FW_BASE		= firmware
+FLAVOR = release
+#FLAVOR = debug
 
 # Base directory for the compiler
 XTENSA_TOOLS_ROOT ?= /opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin
@@ -31,10 +33,20 @@ EXTRA_INCDIR    = include $(SDK_BASE)/../include
 LIBS		= c gcc hal phy pp net80211 lwip wpa upgrade main ssl
 
 # compiler flags using during compilation of source files
-CFLAGS		= -Os -g -O2 -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
+CFLAGS		= -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
 
 # linker flags used to generate the main object file
 LDFLAGS		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
+
+ifeq ($(FLAVOR),debug)
+    CFLAGS += -g -O0
+    LDFLAGS += -g -O0
+endif
+
+ifeq ($(FLAVOR),release)
+    CFLAGS += -g -O2
+    LDFLAGS += -g -O2
+endif
 
 # linker script used for the above linkier step
 LD_SCRIPT	= eagle.app.v6.ld
@@ -132,6 +144,8 @@ flash: firmware/0x00000.bin firmware/0x40000.bin
 
 test: flash
 	screen $(ESPPORT) 115200
+
+rebuild: clean all
 
 clean:
 	$(Q) rm -f $(APP_AR)
